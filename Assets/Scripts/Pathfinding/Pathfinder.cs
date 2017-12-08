@@ -36,7 +36,7 @@ namespace Pathfinding
             startPosition = start;
             endPosition = target;
             completeCallback = callback;
-            gridManager = GridBase.singleton; // Todo check if GridBase is null, if ever need two GridBase objects in a level
+            gridManager = GridBase.singleton;
         }
 
         // The path
@@ -266,7 +266,7 @@ namespace Pathfinding
                             returnVal = null;
                         }
 
-                        // TODO add more diagonal checks if you need them
+                        // TODO add more diagonal checks if needed
                         /*
                         if (returnVal != null)
                         {
@@ -307,7 +307,6 @@ namespace Pathfinding
 
             if (distX > distZ)
             {
-                // TODO - typical A*
                 return 14 * distZ + 10 * (distX - distZ) + 10 * distY;
             }
 

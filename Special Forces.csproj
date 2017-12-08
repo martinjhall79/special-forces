@@ -221,6 +221,7 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\Grid\GridBase.cs" />
     <Compile Include="Assets\Scripts\Grid\Node.cs" />
+    <Compile Include="Assets\Scripts\Managers\GameManager.cs" />
     <Compile Include="Assets\Scripts\Pathfinding\Pathfinder.cs" />
     <Compile Include="Assets\Scripts\Pathfinding\PathfindMaster.cs" />
   </ItemGroup>

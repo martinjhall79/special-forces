@@ -8,13 +8,15 @@ namespace SpecialForces
     public class GridBase : MonoBehaviour
     {
         // Grid dimensions
-        public int dimX = 32;
-        public int dimY = 3;
-        public int dimZ = 32;
-        public float scaleXZ = 1;
-        public float scaleY = 2.3f;
+        public int dimX = 32; // Number of nodes in horizontal (rows)
+        public int dimY = 3; // 3D grid, this is the number of vertical levels (floors)
+        public int dimZ = 32; // Number of nodes in z (columns)
+        public float scaleXZ = 1; // Gaps between nodes. The scale of the whole map
+        public float scaleY = 2.3f; // Vertical gaps between floors. Head height for humans around 2 metres
+        public bool isInit;
+        // Todo can create levels in modelling program, in Unity editor or with custom level editor (we built)
 
-        public bool debugNode; // Todo can create levels in modelling program, in editor or Unity terrain
+        public bool debugNode; // Add quads to make grid visible
         public Material debugMaterial;
         private GameObject debugNodeObj;
 
@@ -28,6 +30,7 @@ namespace SpecialForces
 
         public void InitStage()
         {
+            // Debugging, add quads to nodes so we can see them in editor
             if (debugNode)
             {
                 debugNodeObj = WorldNode();
@@ -35,6 +38,10 @@ namespace SpecialForces
 
             InitCheck();
             CreateGrid();
+
+            // Add player unit
+            GameManager.singleton.Init(); // Todo refactor player start functions - session manager to handle this?
+            isInit = true;
         }
 
         void InitCheck()
@@ -57,7 +64,7 @@ namespace SpecialForces
                 dimZ = 1; // Set grid's default z size if inspector set to 0
             }
 
-            if (scaleXZ == 0)
+            if (scaleXZ < 1)
             {
                 Debug.Log("Scale XZ is 0, assigning default value default");
                 scaleXZ = 1; // Set grid's default scaleXZ size if inspector set to 0
@@ -78,11 +85,11 @@ namespace SpecialForces
             // Create vertical floors
             for (int y = 0; y < dimY; y++)
             {
-                Floors floor = new Floors();
+                Floors floor = new Floors(); // Create a class for each vertical floor
                 floor.nodeParent = new GameObject();
                 floor.nodeParent.name = "floor " + y.ToString();
                 floor.y = y;
-                floors.Add(floor); // Todo error - not set to object instance
+                floors.Add(floor);
 
                 // Add collision deteection game object to this floor level
                 CreateCollisionDetection(y);
@@ -95,17 +102,19 @@ namespace SpecialForces
                         Node n = new Node();
                         n.x = x;
                         n.y = y;
+                        n.z = z;
                         n.isWalkable = true; // Set all nodes walkable to start with
 
                         // If we're debugging
                         if (debugNode)
                         {
                             // Place debug object to node position in world
-                            Vector3 targetPosition = CoordinatesFromNode(x, y, z);
+                            Vector3 targetPosition = GetCoordsFromNode(x, y, z);
                             GameObject go = Instantiate(debugNodeObj,
                                 targetPosition,
                                 Quaternion.identity) as GameObject;
                             go.transform.parent = floor.nodeParent.transform;
+                            go.SetActive(true); // First node set inactive in WorldNode, reactivate nodes after first node
                         }
 
                         grid[x, y, z] = n;
@@ -126,8 +135,17 @@ namespace SpecialForces
             return grid[x, y, z];
         }
 
+        public Node GetNodeFromWorldPosition(Vector3 worldPos)
+        {
+            int x = Mathf.RoundToInt(worldPos.x / scaleXZ);
+            int y = Mathf.RoundToInt(worldPos.y / scaleY);
+            int z = Mathf.RoundToInt(worldPos.z / scaleXZ);
+
+            return GetNode(x, y, z);
+        }
+
         // Get the world position for a node
-        public Vector3 CoordinatesFromNode(int x, int y, int z)
+        public Vector3 GetCoordsFromNode(int x, int y, int z)
         {
             // Scale node coordinates to convert to world coordinates
             Vector3 coords = Vector3.zero;
@@ -139,7 +157,9 @@ namespace SpecialForces
             return coords;
         }
 
-        // Visualise the grid in the Unity editor, for debugging
+        
+
+        // Visualise the grid in the Unity editor for debugging, by adding quads to nodes
         GameObject WorldNode()
         {
             // Fill the grid with quads so we can see it
@@ -151,6 +171,7 @@ namespace SpecialForces
             quad.transform.localEulerAngles = new Vector3(90, 0, 0);
             quad.transform.localScale = Vector3.one * 0.95f; // Gaps between quads, as gridlines
             quad.GetComponentInChildren<MeshRenderer>().material = debugMaterial;
+            go.SetActive(false); // First node in grid is always false
             return go;
         }
 
@@ -161,9 +182,9 @@ namespace SpecialForces
             Floors yFloor = floors[y];
             // Create a game object
             GameObject go = new GameObject();
-            // Add box collider to game object
+            // Add box collider
             BoxCollider collisionBox = go.AddComponent<BoxCollider>();
-            // The collision box is larger than the floor area to get collisions right at the edges and in corners
+            // The collision box overlaps floor area to get collisions right at the edges and in corners
             // Starts from centre of grid
             collisionBox.size = new Vector3(dimX * scaleXZ + (scaleXZ * 2), 
                 0.2f, dimZ * scaleXZ + (scaleXZ * 2));
@@ -174,7 +195,6 @@ namespace SpecialForces
             // Assign the collision detection object to the floor
             yFloor.collisionObj = go;
             go.name = "floor " + y + " collision detection";
-
         }
 
         // There will only be one grid objects in each level
