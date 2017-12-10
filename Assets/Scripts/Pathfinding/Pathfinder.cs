@@ -172,7 +172,6 @@ namespace Pathfinding
                         int y = yIndex;
 
                         // If it's a 2D search, don't check the y
-                        // TODO use 2D for Ludum Dare?
                         if (!getVerticalNeighbours)
                         {
                             y = 0;

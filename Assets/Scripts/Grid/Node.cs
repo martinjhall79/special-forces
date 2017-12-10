@@ -39,6 +39,20 @@ namespace SpecialForces
         // Reference to the world object so we can get the world position of the node
         public GameObject worldObject;
 
+        public void ChangeNodeStatus(bool walkable)
+        {
+
+            if (worldObject != null)
+            {
+                GridBase grid = GridBase.singleton;
+
+                worldObject.GetComponentInChildren<Renderer>().material =
+                    (walkable == true) ? grid.debugMaterial : grid.unwalkableMaterial;
+            }
+
+            isWalkable = walkable;
+        }
+
         // Different types of terrain 
         public NodeType nodeType;
         public enum NodeType

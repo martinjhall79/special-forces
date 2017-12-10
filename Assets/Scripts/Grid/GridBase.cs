@@ -18,6 +18,7 @@ namespace SpecialForces
 
         public bool debugNode; // Add quads to make grid visible
         public Material debugMaterial;
+        public Material unwalkableMaterial;
         private GameObject debugNodeObj;
 
         public Node[,,] grid;
@@ -103,7 +104,7 @@ namespace SpecialForces
                         n.x = x;
                         n.y = y;
                         n.z = z;
-                        n.isWalkable = true; // Set all nodes walkable to start with
+                        n.ChangeNodeStatus(true); // Set all nodes walkable to start with
 
                         // If we're debugging
                         if (debugNode)
@@ -115,6 +116,7 @@ namespace SpecialForces
                                 Quaternion.identity) as GameObject;
                             go.transform.parent = floor.nodeParent.transform;
                             go.SetActive(true); // First node set inactive in WorldNode, reactivate nodes after first node
+                            n.worldObject = go;
                         }
 
                         grid[x, y, z] = n;
@@ -157,9 +159,8 @@ namespace SpecialForces
             return coords;
         }
 
-        
-
         // Visualise the grid in the Unity editor for debugging, by adding quads to nodes
+        // Todo first node instantiated twice!
         GameObject WorldNode()
         {
             // Fill the grid with quads so we can see it
